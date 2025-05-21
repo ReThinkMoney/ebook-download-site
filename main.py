@@ -45,6 +45,9 @@ def check_code(data: CodeRequest):
     return { "valid": True }
 
 def send_email(to_address, file_path):
+     print(f"[📬] Sende E-Mail an: {to_address}")
+    print(f"[📎] Anhang: {file_path}")
+
     msg = EmailMessage()
     msg["Subject"] = "Dein ReThink Money eBook"
     msg["From"] = os.getenv("SMTP_USER")
@@ -58,3 +61,6 @@ def send_email(to_address, file_path):
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
         smtp.login(os.getenv("SMTP_USER"), os.getenv("SMTP_PASS"))
         smtp.send_message(msg)
+     print("[✅] E-Mail erfolgreich versendet.")
+    except Exception as e:
+        print("[❌] Fehler beim Versenden der E-Mail:", e)
