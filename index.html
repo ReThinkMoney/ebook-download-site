@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>ReThink Money – eBook Download</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 600px;
+      margin: 5vh auto;
+      padding: 2em;
+      background: #f9f9f9;
+    }
+    label {
+      display: block;
+      margin-top: 1em;
+      font-weight: bold;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 0.5em;
+      margin-top: 0.5em;
+      font-size: 1em;
+    }
+    #message {
+      margin-top: 1.5em;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ReThink Money – eBook Download</h1>
+  <p>Gib deinen Gutscheincode ein und erhalte dein personalisiertes eBook per E-Mail.</p>
+
+  <label for="code">Gutscheincode:</label>
+  <input type="text" id="code" required>
+
+  <label for="email">E-Mail-Adresse:</label>
+  <input type="email" id="email" required>
+
+  <label for="format">Format wählen:</label>
+  <select id="format">
+    <option value="pdf">PDF (mit Wasserzeichen)</option>
+    <option value="epub">EPUB</option>
+  </select>
+
+  <button onclick="submitForm()">Absenden</button>
+
+  <div id="message"></div>
+
+  <script>
+    async function submitForm() {
+      const code = document.getElementById("code").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const format = document.getElementById("format").value;
+
+      const message = document.
