@@ -55,4 +55,30 @@
       const email = document.getElementById("email").value.trim();
       const format = document.getElementById("format").value;
 
-      const message = document.
+      const message = document.getElementById("message");
+      message.textContent = "Bitte warten ...";
+
+      try {
+        const response = await fetch("https://ebook-download-site.onrender.com/check-code", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ code, email, format })
+        });
+
+        const result = await response.json();
+        if (result.valid) {
+          message.textContent = "✔️ E-Mail mit deinem eBook wurde versendet!";
+        } else {
+          message.textContent = "❌ Ungültiger oder bereits benutzter Gutscheincode.";
+        }
+      } catch (err) {
+        console.error(err);
+        message.textContent = "❌ Fehler beim Senden. Bitte später erneut versuchen.";
+      }
+    }
+  </script>
+
+</body>
+</html>
