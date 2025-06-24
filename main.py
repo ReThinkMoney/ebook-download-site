@@ -1,4 +1,6 @@
+
 from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import pandas as pd
@@ -8,7 +10,13 @@ from pdf_watermark import add_watermark
 import os
 
 app = FastAPI()
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://rethinkmoney.github.io"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 CODES_FILE = "codes.csv"
 PDF_TEMPLATE = "2025-04-30-ReThink-Money-v45.pdf"
 OUTPUT_DIR = "out/"

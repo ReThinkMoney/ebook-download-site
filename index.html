@@ -111,12 +111,14 @@
   </div>
 
   <footer>
+    <p>Diese Seite nutzt keine Cookies<br>
     <p><strong>Impressum</strong><br>
     Angaben gemäß § 5 TMG<br>
     Phillipp Helbig<br>
     Friedrichstraße 48<br>
     65385 Rüdesheim<br>
-    Deutschland</p>
+    Deutschland<br>
+    Kontakt bevorzugt via Threema (ID: E7T69HDV) oder per Mail via der.kuchen.ist.verteilt@gmail.com</p>
   </footer>
 
   <script>
@@ -135,6 +137,7 @@
 
         const result = await response.json();
         if (result.valid) {
+          message.textContent = "✅ Erfolgreich: Das Buch sollte in spätestens 2 Minunten im Posteingang sein. Bitte auch den Spam-Ordner prüfen."
           document.getElementById("formContainer").style.display = "none";
           document.getElementById("successContainer").style.display = "block";
         } else {
@@ -146,7 +149,7 @@
         }
       } catch (err) {
         console.error(err);
-        message.textContent = "❌ Fehler beim Senden. Bitte später erneut versuchen.";
+        message.textContent = "❌ Fehler. Bitte mit einem anderen Browser testen, falls das Problem weiterhin besteht bitte kontakt vie: der.kuchen.ist.verteilt@gmail.com.";
       }
     }
 
