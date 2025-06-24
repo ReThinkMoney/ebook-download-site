@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -6,12 +6,14 @@ import smtplib
 import os
 import csv
 from email.message import EmailMessage
-from PyPDF2 import PdfReader, PdfWriter
 from tempfile import NamedTemporaryFile
+from dotenv import load_dotenv
+from pdf_watermark import add_watermark
+
+load_dotenv()
 
 app = FastAPI()
 
-# ✅ CORS aktivieren für GitHub Pages
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://rethinkmoney.github.io"],
@@ -29,17 +31,8 @@ class CodeRequest(BaseModel):
     format: str = "pdf"
 
 def personalize_pdf(email: str) -> str:
-    reader = PdfReader(PDF_TEMPLATE)
-    writer = PdfWriter()
-    for page in reader.pages:
-        page.merge_text(
-            text=f"Persönliches Exemplar für {email} – nur zur privaten Verwendung",
-            tx=50, ty=20, rotation=0, size=10
-        )
-        writer.add_page(page)
     tmp_file = NamedTemporaryFile(delete=False, suffix=".pdf")
-    with open(tmp_file.name, "wb") as f:
-        writer.write(f)
+    add_watermark(PDF_TEMPLATE, tmp_file.name, email)
     return tmp_file.name
 
 def send_email(recipient: str, filename: str):
