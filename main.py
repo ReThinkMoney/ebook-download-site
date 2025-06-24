@@ -56,15 +56,11 @@ def send_email(to_email, attachment_path):
     msg['From'] = os.getenv("SMTP_USER")
     msg['To'] = to_email
     msg.set_content(
-        "Hallo, vielen Dank für das Interesse, wie der digitale Euro / digitales Zentralbankgeld "
-        "zum wichtigen Baustein für eine bessere Welt werden kann.
-
-"
-        "Euer Exemplar ReThink Money ist im Anhang dieser Mail.
-
-"
-        "Dies ist eine no-Reply Mailadresse. Bei Fragen, Anmerkungen oder Kritik "
-        "am besten über Threema an E7T69HDV."
+        "Hallo, \n\n"
+        "vielen Dank für das Interesse, wie der digitale Euro / digitales Zentralbankgeld "
+        "zum wichtigen Baustein für eine bessere Welt werden kann.\n\n"
+        "Euer Exemplar ReThink Money ist im Anhang dieser Mail.\n\n"
+        "Dies ist eine no-Reply Mailadresse. Bei Fragen, Anmerkungen oder Kritik bitte via Threema kontaktieren (Threema-ID: E7T69HDV."
     )
 
     with open(attachment_path, 'rb') as f:
