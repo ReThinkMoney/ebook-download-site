@@ -12,7 +12,7 @@ import os
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://rethinkmoney.github.io"],
+    allow_origins=["https://rethinkmoney.github.io/ebook-download-site/"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
