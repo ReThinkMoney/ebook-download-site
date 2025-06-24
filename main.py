@@ -1,66 +1,75 @@
-# main.py
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import pandas as pd
-from pdf_watermark import add_watermark
-from email.message import EmailMessage
 import smtplib
+from email.message import EmailMessage
+from pdf_watermark import add_watermark
 import os
 
 app = FastAPI()
 
-# CORS erlauben für alle Domains (z. B. deine HTML-Seite)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+CODES_FILE = "codes.csv"
+PDF_TEMPLATE = "2025-04-30-ReThink-Money-v45.pdf"
+OUTPUT_DIR = "out/"
+
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+def load_codes():
+    return pd.read_csv(CODES_FILE)
+
+def save_codes(df):
+    df.to_csv(CODES_FILE, index=False)
 
 class CodeRequest(BaseModel):
     code: str
     email: str
-    format: str  # "pdf" oder "epub"
+    format: str  # wird ignoriert, immer PDF
 
 @app.post("/check-code")
-def check_code(data: CodeRequest):
-    df = pd.read_csv("codes.csv")
+async def check_code(req: CodeRequest):
+    df = load_codes()
+    match = df[df['code'].str.upper() == req.code.upper()]
+    if match.empty:
+        return JSONResponse(content={ "valid": False })
 
-    match = df[df['code'].str.upper() == data.code.upper()]
-    if match.empty or match.iloc[0]['used']:
-        return { "valid": False }
+    remaining = 20 - int(match.iloc[0].get("count", 0))
+    if remaining <= 0:
+        return JSONResponse(content={ "valid": False, "reason": "used" })
 
-    # Markiere als verwendet
-    df.loc[df['code'].str.upper() == data.code.upper(), 'used'] = True
-    df.to_csv("codes.csv", index=False)
+    # PDF personalisieren und speichern
+    output_pdf = os.path.join(OUTPUT_DIR, f"ebook_{req.code}.pdf")
+    add_watermark(PDF_TEMPLATE, output_pdf, req.email)
 
-    if data.format == "pdf":
-        filename = f"ebook_{data.code}.pdf"
-        add_watermark("2025-04-30-ReThink-Money-v45.pdf", filename, data.email)
-    else:
-        filename = "ReThinkMoney.epub"  # Falls du diese Datei hast
+    # E-Mail senden
+    send_email(req.email, output_pdf)
 
-    send_email(data.email, filename)
-    return { "valid": True }
+    # Downloadzähler erhöhen
+    df.loc[df['code'].str.upper() == req.code.upper(), "count"] = 20 - (remaining - 1)
+    save_codes(df)
 
-def send_email(to_address, file_path):
-     print(f"[📬] Sende E-Mail an: {to_address}")
-    print(f"[📎] Anhang: {file_path}")
+    return { "valid": True, "remaining": remaining - 1 }
 
+def send_email(to_email, attachment_path):
     msg = EmailMessage()
-    msg["Subject"] = "Dein ReThink Money eBook"
-    msg["From"] = os.getenv("SMTP_USER")
-    msg["To"] = to_address
-    msg.set_content("Im Anhang findest du dein persönliches Exemplar von ReThink Money.")
+    msg['Subject'] = "Ihr Exemplar ReThink Money"
+    msg['From'] = os.getenv("SMTP_USER")
+    msg['To'] = to_email
+    msg.set_content(
+        "Hallo, vielen Dank für das Interesse, wie der digitale Euro / digitales Zentralbankgeld "
+        "zum wichtigen Baustein für eine bessere Welt werden kann.
 
-    with open(file_path, "rb") as f:
-        file_data = f.read()
-        msg.add_attachment(file_data, maintype="application", subtype="pdf", filename=os.path.basename(file_path))
+"
+        "Euer Exemplar ReThink Money ist im Anhang dieser Mail.
+
+"
+        "Dies ist eine no-Reply Mailadresse. Bei Fragen, Anmerkungen oder Kritik "
+        "am besten über Threema an E7T69HDV."
+    )
+
+    with open(attachment_path, 'rb') as f:
+        msg.add_attachment(f.read(), maintype='application', subtype='pdf', filename='Buch ReThink Money.pdf')
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
         smtp.login(os.getenv("SMTP_USER"), os.getenv("SMTP_PASS"))
         smtp.send_message(msg)
-     print("[✅] E-Mail erfolgreich versendet.")
-    except Exception as e:
-        print("[❌] Fehler beim Versenden der E-Mail:", e)
