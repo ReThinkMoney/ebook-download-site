@@ -1,84 +1,158 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ReThink Money – eBook Download</title>
   <style>
-    body {
+    * {
+      box-sizing: border-box;
+    }
+    body, html {
+      margin: 0;
+      padding: 0;
       font-family: sans-serif;
-      max-width: 600px;
-      margin: 5vh auto;
+      color: white;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      animation: fadeImages 6s infinite;
+    }
+    @keyframes fadeImages {
+      0%   { background-image: url('cover1.jpg'); }
+      50%  { background-image: url('cover2.jpg'); }
+      100% { background-image: url('cover1.jpg'); }
+    }
+    .container {
+      position: relative;
+      z-index: 2;
+      background: rgba(0, 0, 0, 0.6);
       padding: 2em;
-      background: #f9f9f9;
+      max-width: 90%;
+      margin: auto;
+      margin-top: 5vh;
+      border-radius: 10px;
     }
     label {
       display: block;
       margin-top: 1em;
       font-weight: bold;
     }
-    input, select, button {
+    input, button {
       width: 100%;
-      padding: 0.5em;
+      padding: 0.7em;
       margin-top: 0.5em;
       font-size: 1em;
+      border-radius: 5px;
+      border: none;
     }
     #message {
       margin-top: 1.5em;
       font-weight: bold;
     }
+    .klappentext {
+      text-align: center;
+      font-size: 1.2em;
+      margin-bottom: 2em;
+    }
+    footer {
+      position: absolute;
+      bottom: 1em;
+      width: 100%;
+      text-align: center;
+      font-size: 0.8em;
+      color: #ccc;
+    }
+    @media (max-width: 600px) {
+      .klappentext {
+        font-size: 1em;
+      }
+      .container {
+        padding: 1em;
+      }
+    }
   </style>
 </head>
 <body>
+  <div class="background"></div>
 
-  <h1>ReThink Money – eBook Download</h1>
-  <p>Gib deinen Gutscheincode ein und erhalte dein personalisiertes eBook per E-Mail.</p>
+  <div class="container" id="formContainer">
+    <div class="klappentext">
+      <p><strong>ReThink Money</strong> – Warum unser Geld die Welt regiert und wie wir das ändern können. Dieses Buch zeigt auf verständliche Weise, wie wir mit neuem Gelddenken die Wirtschaft gerechter und nachhaltiger gestalten können.</p>
+    </div>
 
-  <label for="code">Gutscheincode:</label>
-  <input type="text" id="code" required>
+    <label for="code">Gutscheincode:</label>
+    <input type="text" id="code" required />
 
-  <label for="email">E-Mail-Adresse:</label>
-  <input type="email" id="email" required>
+    <label for="email">E-Mail-Adresse:</label>
+    <input type="email" id="email" required />
 
-  <label for="format">Format wählen:</label>
-  <select id="format">
-    <option value="pdf">PDF (mit Wasserzeichen)</option>
-    <option value="epub">EPUB</option>
-  </select>
+    <button id="submitBtn">Absenden</button>
 
-  <button onclick="submitForm()">Absenden</button>
+    <div id="message"></div>
+  </div>
 
-  <div id="message"></div>
+  <div class="container" id="successContainer" style="display: none;">
+    <div class="klappentext">
+      <p><strong>Vielen Dank!</strong><br><br>
+      Dein persönliches Exemplar von <strong>ReThink Money</strong> wird in Kürze an deine E-Mail-Adresse versendet.<br><br>
+      ⏳ Es kann bis zu <strong>120 Sekunden</strong> dauern.<br>
+      📬 Bitte prüfe auch deinen <strong>Spam-Ordner</strong>.</p>
+    </div>
+  </div>
+
+  <footer>
+    <p><strong>Impressum</strong><br>
+    Angaben gemäß § 5 TMG<br>
+    Phillipp Helbig<br>
+    Friedrichstraße 48<br>
+    65385 Rüdesheim<br>
+    Deutschland</p>
+  </footer>
 
   <script>
     async function submitForm() {
       const code = document.getElementById("code").value.trim();
       const email = document.getElementById("email").value.trim();
-      const format = document.getElementById("format").value;
-
       const message = document.getElementById("message");
       message.textContent = "Bitte warten ...";
 
       try {
-        const response = await fetch("https://ebook-download-site.onrender.com/check-code", {
+        const response = await fetch("https://ebook-mailer.onrender.com/check-code", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ code, email, format })
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code, email, format: "pdf" })
         });
 
         const result = await response.json();
         if (result.valid) {
-          message.textContent = "✔️ E-Mail mit deinem eBook wurde versendet!";
+          document.getElementById("formContainer").style.display = "none";
+          document.getElementById("successContainer").style.display = "block";
         } else {
-          message.textContent = "❌ Ungültiger oder bereits benutzter Gutscheincode.";
+          if (result.reason === "used") {
+            message.textContent = "❌ Gutscheincode leider bereits verbraucht.";
+          } else {
+            message.textContent = "❌ Ungültiger Gutscheincode.";
+          }
         }
       } catch (err) {
         console.error(err);
         message.textContent = "❌ Fehler beim Senden. Bitte später erneut versuchen.";
       }
     }
-  </script>
 
+    window.onload = () => {
+      document.getElementById("submitBtn").addEventListener("click", submitForm);
+    };
+  </script>
 </body>
 </html>
